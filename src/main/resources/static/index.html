@@ -190,9 +190,32 @@
         btnOkEl.click()
 
         // div1 table 의 row 을 더블클릭했을때 input 요소에 값 전달하기
-        const  listRowEl = document.querySelector('#list tr:hover');
-        listRowEl.addEventListener('dblclick', async event => {
-            alert(event)
+        // const  tr = document.querySelector('#div1 tr:hover');
+        // click 을 해서 실행할 때 (동적으로) 생성된 element(tag) 는 해당 선택자('#div1 tr:hover')로 찾지 못한다
+        // 해결 방법 : 미리 생성된 tag를 부모 역할을 할 tag(<div id="div1">) 에 이벤트를 걸어준다
+
+        const div1El = document.querySelector('#div1');
+        div1El.addEventListener('dblclick', event => {
+            // console.log(event.target); // td
+            let tds = event.target.parentElement.children;
+            console.log(tds);
+                 // HTMLCollection(5)NBSP[td, td, td, td, td]
+                 // tds.forEach() 로 출력 안됨 : tag collection
+                const useridEl   = document.getElementById('userid')
+                const passwdEl   = document.getElementById('passwd')
+                const usernameEl = document.getElementById('username')
+                const emailEl    = document.getElementById('email')
+                const indateEl   = document.getElementById('indate')
+
+                Array.from(tds).forEach((td, i) => {
+                    console.dir(td)
+                        switch (i) {
+                            case 0: useridEl.value     = td.innerHTML; break;
+                            case 1: usernameElEl.value = td.innerHTML; break;
+                            case 2: emailEl.value      = td.innerHTML; break;
+                            case 3: indateElEl.value   = td.innerHTML; break;
+                        }
+                    })
         })
 
         // -------------------
