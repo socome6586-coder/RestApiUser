@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>REST API User CRUD</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <style>
+        main { width: 80%; margin:30px auto;}
+        table, th, td { border-collapse: collapse; border: 1px solid #ccc; }
+        th, td { padding: 10px; text-align: center; }
+
+        #div1 {  margin-top: 30px; margin-bottom: 200px;  }
+
+        #list button {border:0; background: #fff;}
+        #list tr:hover:not(:first-child) { background: yellow; }
+
+        .form-table input { width:260px; }
+        .message          { margin-top:15px; font-weight: 600; }
+        .error            { color: #b00020; }
+        .success          { color: #0a6b2b; }
+
+    </style>
+</head>
+<body>
+  <main>
+    <h2>회원 REST API Test</h2>
+    <form id="form1">
+     <table  class="form-table">
+      <tr>
+          <td>아이디</td>
+          <td><input type="text" id="userid" required></td>
+      </tr>
+      <tr>
+          <td>암호</td>
+          <td><input type="password" id="passwd" required ></td>
+      </tr>
+      <tr>
+          <td>이름</td>
+          <td><input type="text" id="username" required ></td>
+      </tr>
+      <tr>
+          <td>이메일</td>
+          <td><input type="email" id="email" ></td>
+      </tr>
+      <tr>
+          <td>가입일</td>
+          <td><input type="text" id="indate" readonly ></td>
+      </tr>
+      <tr>
+          <td colspan="2">
+            <a id="btnInsert" href="#" class="btn btn-primary btn-sm">추가</a>
+            <a id="btnUpdate" href="#" class="btn btn-warning btn-sm">수정</a>
+            <a id="btnDelete" href="#" class="btn btn-danger  btn-sm">삭제</a>
+            <input type="button" id="btnClear"  class="btn btn-info  btn-sm" value="Clear" />
+          </td>
+      </tr>
+
+     </table>
+    </form>
+
+    <div id="message" class="message"></div>
+    <hr>
+
+    <div>
+        아이디 <input type="text" id="text" placeholder="검색어"/>
+        <button id="btnOk" class="btn btn-secondary btn-sm">검색</button>
+    </div>
+
+    <div id="div1"></div>
+
+  </main>
+
+  <!-- -------------------------------------------------------- -->
+  <script>
+    const  API_URL = '/api/users';   // 기본 api 주소
+
+    // #div1 table ui 시작 -------------------------
+    // header  문자열
+    function    table_header() {
+        return  `
+           <tr>
+             <th>아이디</th>
+             <th>이름</th>
+             <th>이메일</th>
+             <th>가입일</th>
+             <th>삭제</th>
+           </tr>
+        `;
+    }
+
+    // 조회한 datalist 출력
+    function  datalist_display( datalist ) {
+        let html   = '<table id="list" class="table table-striped">';
+        html      += table_header();
+
+        datalist.forEach( user => {
+            const userid     = user.userid;
+            const username   = user.username;
+            const email      = user.email;
+            const indate     = user.indate;
+            let tr = `
+                <tr>
+                  <td>${userid}</td>
+                  <td>${username}</td>
+                  <td>${email}</td>
+                  <td>${indate}</td>
+                  <td><button type="button" class="btnDel">🗑</button></td>
+                </tr>
+            `
+            html += tr;
+        })
+        html      += '</table>';
+
+        const div1El = document.getElementById('div1');
+        div1El.innerHTML = html;
+    }
+
+    function  text_clear() {
+        const  useridEl    = document.getElementById('userid');
+        const  passwdEl    = document.getElementById('passwd');
+        const  usernameEl  = document.getElementById('username');
+        const  emailEl     = document.getElementById('email');
+        const  indateEl    = document.getElementById('indate');
+
+        useridEl.value     = '';
+        passwdEl.value     = '';
+        usernameEl.value   = '';
+        emailEl.value      = '';
+        indateEl.value     = '';
+
+        useridEl.focus();
+
+    }
+
+    // #div1 table ui 끝 -------------------------
+
+    //  data 조작 시작 ------------------------------------
+    // data 조회 API_URL = '/api/users'
+    // GET http://localhost:8080/api/users
+    // GET http://localhost:8080/api/users?keyword=user
+    // 목록 조회
+    async function getUsers() {
+        const keywordEl = document.getElementById('text');
+        const keyword   = keywordEl.value.trim();
+        const url       = (keyword)
+            ? `${API_URL}?keyword=${encodeURIComponent(keyword)}`
+            : API_URL;
+        const datalist = await requestJson(url);
+        datalist_display( datalist );
+    }
+
+    // requestJson()
+    async function requestJson(url, options = {}) {
+        const response = await fetch(url, options);
+        const text     = await response.json();  // "결과문자열" -> js 객체 JSON.parse()
+        let   data     =  null;
+
+        // 조회한 결과가 있다면
+        if( text ) {
+            try {
+                data = JSON.parse(text); // text(JSON  문자열) -> Javascript 객체 변환
+            } catch(err) {
+                data = text
+            }
+        }
+
+        //  조회 status code ok(200) 이 아니면
+        if(!response.ok) {
+            throw new Error(response.error);
+        }
+
+        return data;
+    }
+    //  data 조작 끝 ------------------------------------
+
+    // 프로그램이 시작되면
+    // window.onload
+    window.onload = function(){
+        // 검색버튼을 클릭했을떄
+        const btnOkEl = document.getElementById('btnOk');
+        btnOkEl.onclick = async function() {
+            try {
+                await  getUsers();
+            } catch(err) {
+                console.log(err);
+                alert(err);
+            }
+        }
+        btnOkEl.click()
+
+        // div1 table 의 row 을 더블클릭했을때 input 요소에 값 전달하기
+        const  listRowEl = document.querySelector('#list tr:hover');
+        listRowEl.addEventListener('dblclick', async event => {
+            alert(event)
+        })
+
+        // -------------------
+        // 추가버튼 클릭
+        const  btnInserEl = document.getElementById('btnInsert');
+        btnInserEl.addEventListener('click', async function() {
+            alert('추가')
+        })
+
+        // -------------------
+        // 수정버튼 클릭
+        const  btnUpdateEl = document.getElementById('btnUpdate');
+        btnUpdateEl.addEventListener('click', async function() {
+            alert('수정')
+        })
+
+        // -------------------
+        // 삭제버튼 클릭
+        const  btnDeleteEl = document.getElementById('btnDelete');
+        btnDeleteEl.addEventListener('click', async function() {
+            alert('삭제')
+        })
+
+        // -------------------
+        // clear 버튼 클릭
+        const  btnClearEl = document.getElementById('btnClear');
+        btnClearEl.addEventListener('click', async function() {
+            text_clear()
+        })
+    }
+
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

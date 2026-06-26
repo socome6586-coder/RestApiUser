@@ -1,0 +1,32 @@
+### 전체 조회
+GET http://localhost:8080/api/users
+
+### 아이디 검색
+GET http://localhost:8080/api/users?keyword=user
+
+### 단건 조회
+GET http://localhost:8080/api/users/admin
+
+### 등록
+POST http://localhost:8080/api/users
+Content-Type: application/json
+
+{
+  "userid": "test01",
+  "passwd": "1234",
+  "username": "테스트사용자",
+  "email": "test01@example.com"
+}
+
+### 수정
+PUT http://localhost:8080/api/users/test01
+Content-Type: application/json
+
+{
+  "passwd": "5678",
+  "username": "수정사용자",
+  "email": "test01-updated@example.com"
+}
+
+### 삭제
+DELETE http://localhost:8080/api/users/test01
