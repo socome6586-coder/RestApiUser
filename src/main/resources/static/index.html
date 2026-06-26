@@ -150,6 +150,26 @@
         datalist_display( datalist );
     }
 
+    // data_insert()
+    async function data_insert() {
+        const options = {
+            method: 'POST',
+            body: JSON.stringify({
+                userid: 'foo',
+                passwd: 'bar',
+                username: 'foobar',
+                email: 'foo@bar.com'
+            }),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8'
+            }
+        }
+        await requestJson(url, options);
+        text_clear();
+        await loadUsers();
+    }
+
+
     // requestJson()
     async function requestJson(url, options = {}) {
         const response = await fetch(url, options);
@@ -197,6 +217,8 @@
         const div1El = document.querySelector('#div1');
         div1El.addEventListener('dblclick', event => {
             // console.log(event.target); // td
+            // 휴지통(삭제) 버튼이나 헤더(th) 를 더블클릭하면 무시 (td 만 처리)
+            if (event.target.tagName !== 'TD') return;
             let tds = event.target.parentElement.children;
             console.log(tds);
                  // HTMLCollection(5)NBSP[td, td, td, td, td]
@@ -210,19 +232,29 @@
                 Array.from(tds).forEach((td, i) => {
                     console.dir(td)
                         switch (i) {
-                            case 0: useridEl.value     = td.innerHTML; break;
-                            case 1: usernameElEl.value = td.innerHTML; break;
-                            case 2: emailEl.value      = td.innerHTML; break;
-                            case 3: indateElEl.value   = td.innerHTML; break;
+                            case 0: useridEl.value   = td.innerHTML; break;
+                            case 1: usernameEl.value = td.innerHTML; break;
+                            case 2: emailEl.value    = td.innerHTML; break;
+                            case 3: indateEl.value   = td.innerHTML; break;
                         }
                     })
         })
 
         // -------------------
+        // a tag 를 버튼으로 사용하려면 기본 이벤트를 무력화 해야 한다
         // 추가버튼 클릭
         const  btnInserEl = document.getElementById('btnInsert');
-        btnInserEl.addEventListener('click', async function() {
-            alert('추가')
+        btnInserEl.addEventListener('click', async function(event) {
+            console.log(event);
+            event.preventDefault(); // 기본 이벤트 취소
+            event.stopPropagation();
+
+            try {
+                await data_insert();
+            } catch (err) {
+                console.log(err);
+                alert('오류발생이용')
+            }
         })
 
         // -------------------
