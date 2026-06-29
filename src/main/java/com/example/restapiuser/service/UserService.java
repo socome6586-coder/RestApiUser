@@ -56,8 +56,22 @@ public class UserService {
             UserEntity savedUser = userRepository.save(user);
             return UserResponse.from(savedUser);
         }
+
+        // 회원삭제
+    @Transactional
+    public void deleteUser(String userid) {
+        UserEntity user = getUserEntity(userid);
+        userRepository.delete(user); // 삭제
     }
+
+    private UserEntity getUserEntity(String userid) {
+        return userRepository.findById(userid)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND,
+                        "사용자를 찾을 수 없습니다." + userid));
+    }
+
 }
+
 
 
 

@@ -100,7 +100,7 @@
             const email      = user.email;
             const indate     = user.indate;
             let tr = `
-                <tr>
+                <tr data-userid="${userid}">
                   <td>${userid}</td>
                   <td>${username}</td>
                   <td>${email}</td>
@@ -164,9 +164,20 @@
                 'Content-type': 'application/json; charset=UTF-8'
             }
         }
-        await requestJson(url, options);
+        await requestJson(API_URL, options);
         text_clear();
-        await loadUsers();
+        await getUsers();
+    }
+
+    // data_delete()
+    async function data_delete (userid) {
+        // DELETE /api/users/test1
+        await requestJson(`${API_URL}/${userid}`, {
+            method: 'DELETE'
+        })
+
+        text_clear();
+        await getUsers(); // data 전체 조회
     }
 
 
@@ -267,8 +278,48 @@
         // -------------------
         // 삭제버튼 클릭
         const  btnDeleteEl = document.getElementById('btnDelete');
-        btnDeleteEl.addEventListener('click', async function() {
-            alert('삭제')
+        btnDeleteEl.addEventListener('click', async function(e) {
+            e.preventDefault();  // 기본 이벤트 제거
+            e.stopPropagation(); // 이벤트 버블링 방지
+
+            const useridEl = document.getElementById('userid');
+            if (useridEl.value == '') return;
+            let yes = confirm(useridEl.value + "를 삭제하시겠습니까?")
+
+            if (!yes) return;
+
+            try {
+                await data_delete(useridEl.value);
+            } catch (err) {
+                console.log(err);
+                alert('오류발생')
+            }
+        })
+
+        // 삭제 버튼 : 휴지통 아이콘 클릭
+        // 실행시 생성된 버튼이라 document.
+        // const btnDelEl = document.querySelector('.btnDel');
+        div1El.addEventListener('click', async e => {
+            if (e.target.className != "btnDel") return;
+            e.preventDefault()
+            e.stopPropagation()
+
+            // el.closest('tr') : el 의 가장 가까운 부모 tag
+            console.log(e.target.closest('tr'))
+            const tr     = e.target.closest('tr')
+            const userid = tr.dataset.userid
+            // alert(userid)
+            let yes = confirm(userid + "를 삭제하시겠습니까?")
+
+            if (!yes || userid == "admin") return;
+
+            try {
+                await data_delete(userid);
+            } catch (err) {
+                console.log(err);
+                alert('오류발생')
+            }
+
         })
 
         // -------------------
